@@ -17,10 +17,10 @@ class Subscriber(Thread):
 
     def run(self):
         print('starting subscriber, on topic(s) {}'.format(self.topics_callbacks.keys()))
-        subscriber = self.context.socket(zmq.SUB)
-        subscriber.connect("tcp://127.0.0.1:5555")
-        for topic in self.topics_callbacks.keys():
-            subscriber.setsockopt_string(zmq.SUBSCRIBE, topic)
+        subscriber = self.context.socket(zmq.DISH)
+        subscriber.bind("udp://127.0.0.1:5555")
+        # for topic in self.topics_callbacks.keys():
+        #     subscriber.setsockopt_string(zmq.SUBSCRIBE, topic)
         poller = zmq.Poller()
         poller.register(subscriber, zmq.POLLIN)
         self.loop = True
@@ -57,8 +57,8 @@ class Publisher:
         self.pos_msg = msg
 
     def run(self):
-        socket = self.zmq_context.socket(zmq.PUB)
-        socket.connect("tcp://127.0.0.1:5556")
+        socket = self.zmq_context.socket(zmq.RADIO)
+        socket.connect("udp://127.0.0.1:5556")
 
         count = 0
         while True:

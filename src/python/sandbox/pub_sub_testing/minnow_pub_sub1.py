@@ -17,10 +17,10 @@ class Subscriber(Thread):
 
     def run(self):
         print('starting subscriber, on topic(s) {}'.format(self.topics_callbacks.keys()))
-        subscriber = self.context.socket(zmq.SUB)
-        subscriber.connect("tcp://127.0.0.1:5555")
-        for topic in self.topics_callbacks.keys():
-            subscriber.setsockopt_string(zmq.SUBSCRIBE, topic)
+        subscriber = self.context.socket(zmq.DISH)
+        subscriber.bind("udp://127.0.0.1:5555")
+        # for topic in self.topics_callbacks.keys():
+        #     subscriber.setsockopt_string(zmq.SUBSCRIBE, topic)
         poller = zmq.Poller()
         poller.register(subscriber, zmq.POLLIN)
         self.loop = True
@@ -28,6 +28,7 @@ class Subscriber(Thread):
             evts = poller.poll(1000)
             if evts:
                 message = subscriber.recv()
+                print(message)
                 for topic in self.topics_callbacks.keys():
                     if topic in str(message):
                         self.topics_callbacks[topic](message)
@@ -61,13 +62,14 @@ class Publisher:
         self.press_msg = msg
 
     def run(self):
-        socket = self.zmq_context.socket(zmq.PUB)
-        socket.connect("tcp://127.0.0.1:5556")
+        socket = self.zmq_context.socket(zmq.RADIO)
+        socket.connect("udp://127.0.0.1:5556")
 
         count = 0
         while True:
             count += 1
-            socket.send_string('POS_' + str(count))
+            socket.send(b'POS_' + bytearray(str(count), 'utf-8'),  group='numbers')
+            print(count)
             if count%100 == 0:
                 print(self.nav_msg, self.press_msg)
             time.sleep(0.0001)
